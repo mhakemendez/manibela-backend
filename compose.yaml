@@ -1,0 +1,45 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: manibela-app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - manibela-network
+
+  db:
+    image: mysql:8.0
+    container_name: manibela-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: manibela
+      MYSQL_USER: manibela_user
+      MYSQL_PASSWORD: BFjs0jDBkqcyMJlq
+      MYSQL_ROOT_PASSWORD: BFjs0jDBkqcyMJlq
+    ports:
+      - "3306:3306"
+    volumes:
+      - manibela-db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-pchange_root_password"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - manibela-network
+
+volumes:
+  manibela-db-data:
+
+networks:
+  manibela-network:
+    driver: bridge
