@@ -2,9 +2,10 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\VehicleController;
+use App\Http\Controllers\Api\VehiclePhotoController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\VehicleController;
 
 Route::post('/register', [AuthController::class, 'register'])
     ->middleware('throttle:5,1');
@@ -25,6 +26,28 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::middleware('role:vehicle_owner')->group(function () {
         Route::apiResource('vehicles', VehicleController::class);
+
+
+        Route::post('/vehicles/{vehicle}/photos', [
+            VehiclePhotoController::class,
+            'store',
+        ]);
+
+        Route::get('/vehicles/{vehicle}/photos', [
+            VehiclePhotoController::class,
+            'index',
+        ]);
+
+        Route::patch('/vehicles/{vehicle}/photos/{photo}/primary', [
+            VehiclePhotoController::class,
+            'setPrimary',
+        ]);
+
+        Route::delete('/vehicles/{vehicle}/photos/{photo}', [
+            VehiclePhotoController::class,
+            'destroy',
+        ]);
+
     });
 
     Route::prefix('admin')
