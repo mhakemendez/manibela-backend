@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\VehicleAvailabilityController;
 use App\Http\Controllers\Api\VehicleController;
 use App\Http\Controllers\Api\VehiclePhotoController;
 use Illuminate\Http\Request;
@@ -46,6 +47,26 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/vehicles/{vehicle}/photos/{photo}', [
             VehiclePhotoController::class,
             'destroy',
+        ]);
+
+        Route::get('/vehicles/{vehicle}/availability', [
+            VehicleAvailabilityController::class,
+            'index'
+        ]);
+
+        Route::post('/vehicles/{vehicle}/availability', [
+            VehicleAvailabilityController::class,
+            'store'
+        ]);
+
+        Route::put('/vehicles/{vehicle}/availability/{availability}', [
+            VehicleAvailabilityController::class,
+            'update'
+        ]);
+
+        Route::delete('/vehicles/{vehicle}/availability/{availability}', [
+            VehicleAvailabilityController::class,
+            'destroy'
         ]);
 
     });
