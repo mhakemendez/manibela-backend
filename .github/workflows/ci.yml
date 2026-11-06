@@ -1,0 +1,73 @@
+name: Manibela Backend CI
+
+on:
+  push:
+    branches:
+      - "feature/**"
+      - "fix/**"
+      - develop
+  pull_request:
+    branches:
+      - develop
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  laravel-tests:
+    name: Laravel Tests
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: manibela_test
+          MYSQL_USER: manibela_user
+          MYSQL_PASSWORD: ci_password
+          MYSQL_ROOT_PASSWORD: root_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot_password"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo_mysql, bcmath, gd, zip, intl, pcntl
+          coverage: none
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Prepare Laravel environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Configure test database
+        run: |
+          echo "DB_CONNECTION=mysql" >> .env
+          echo "DB_HOST=127.0.0.1" >> .env
+          echo "DB_PORT=3306" >> .env
+          echo "DB_DATABASE=manibela_test" >> .env
+          echo "DB_USERNAME=manibela_user" >> .env
+          echo "DB_PASSWORD=ci_password" >> .env
+
+      - name: Run database migrations
+        run: php artisan migrate --force
+
+      - name: Run automated tests
+        run: php artisan test
+
+      - name: Build Docker image
+        run: docker build -f docker/php/Dockerfile -t manibela-backend:ci .
