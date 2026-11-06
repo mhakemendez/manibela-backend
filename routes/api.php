@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\VehicleController;
 
 Route::post('/register', [AuthController::class, 'register'])
     ->middleware('throttle:5,1');
@@ -21,6 +22,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::put('/profile', [ProfileController::class, 'update']);
     Route::put('/profile/password', [ProfileController::class, 'updatePassword']);
+
+    Route::middleware('role:vehicle_owner')->group(function () {
+        Route::apiResource('vehicles', VehicleController::class);
+    });
+
+    Route::prefix('admin')
+        ->middleware('role:admin')
+        ->group(function () {
+            Route::get('/vehicles', [VehicleController::class, 'adminIndex']);
+
+            Route::patch('/vehicles/{vehicle}/approve', [VehicleController::class, 'approve']);
+
+            Route::patch('/vehicles/{vehicle}/reject', [VehicleController::class, 'reject']);
+        });
 });
 
 if (app()->environment(['local', 'testing'])) {
