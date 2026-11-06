@@ -17,3 +17,29 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 });
+
+if (app()->environment(['local', 'testing'])) {
+    Route::middleware(['auth:sanctum', 'role:customer'])
+        ->get('/rbac/customer', function (Request $request) {
+            return response()->json([
+                'message' => 'Customer access granted.',
+                'role' => $request->user()->role,
+            ]);
+        });
+
+    Route::middleware(['auth:sanctum', 'role:vehicle_owner'])
+        ->get('/rbac/vehicle-owner', function (Request $request) {
+            return response()->json([
+                'message' => 'Vehicle owner access granted.',
+                'role' => $request->user()->role,
+            ]);
+        });
+
+    Route::middleware(['auth:sanctum', 'role:admin'])
+        ->get('/rbac/admin', function (Request $request) {
+            return response()->json([
+                'message' => 'Admin access granted.',
+                'role' => $request->user()->role,
+            ]);
+        });
+}

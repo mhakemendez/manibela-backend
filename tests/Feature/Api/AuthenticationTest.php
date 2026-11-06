@@ -101,7 +101,8 @@ class AuthenticationTest extends TestCase
 
         $response->assertOk()
             ->assertJsonPath('id', $user->id)
-            ->assertJsonPath('email', $user->email);
+            ->assertJsonPath('email', $user->email)
+            ->assertJsonPath('role', 'customer');
     }
 
     public function test_authenticated_customer_can_logout(): void
