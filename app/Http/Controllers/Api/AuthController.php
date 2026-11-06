@@ -34,7 +34,11 @@ class AuthController extends Controller
             ],
         ]);
 
-        $user = User::create($validated);
+        $user = new User($validated);
+
+        $user->role = User::ROLE_CUSTOMER;
+
+        $user->save();
 
         Auth::login($user);
 
@@ -56,7 +60,7 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        if (! Auth::attempt($credentials)) {
+        if (!Auth::attempt($credentials)) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
