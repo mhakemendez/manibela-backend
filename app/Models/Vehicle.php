@@ -27,6 +27,8 @@ class Vehicle extends Model
         'fuel_type',
         'seats',
         'description',
+        'pickup_latitude',
+        'pickup_longitude',
     ];
 
     public function owner(): BelongsTo

@@ -25,6 +25,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/profile', [ProfileController::class, 'update']);
     Route::put('/profile/password', [ProfileController::class, 'updatePassword']);
 
+    Route::middleware('role:customer')->group(function () {
+        Route::get('/vehicles/nearby', [
+            VehicleController::class,
+            'nearby',
+        ]);
+    });
+
     Route::middleware('role:vehicle_owner')->group(function () {
         Route::apiResource('vehicles', VehicleController::class);
 

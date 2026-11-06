@@ -40,6 +40,8 @@ class VehicleController extends Controller
             'fuel_type' => ['required', 'string', 'max:30'],
             'seats' => ['required', 'integer', 'min:1', 'max:255'],
             'description' => ['nullable', 'string'],
+            'pickup_latitude' => ['nullable', 'numeric', 'between:-90,90'],
+            'pickup_longitude' => ['nullable', 'numeric', 'between:-180,180'],
         ]);
 
         $vehicle = $request->user()
@@ -97,6 +99,8 @@ class VehicleController extends Controller
             'fuel_type' => ['sometimes', 'required', 'string', 'max:30'],
             'seats' => ['sometimes', 'required', 'integer', 'min:1', 'max:255'],
             'description' => ['sometimes', 'nullable', 'string'],
+            'pickup_latitude' => ['nullable', 'numeric', 'between:-90,90'],
+            'pickup_longitude' => ['nullable', 'numeric', 'between:-180,180'],
         ]);
 
         $vehicle->update($validated);
@@ -167,5 +171,68 @@ class VehicleController extends Controller
             'data' => $vehicle->fresh(),
             'reason' => $validated['reason'],
         ]);
+    }
+
+    public function nearby(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'latitude' => ['required', 'numeric', 'between:-90,90'],
+            'longitude' => ['required', 'numeric', 'between:-180,180'],
+            'radius' => ['sometimes', 'numeric', 'min:1', 'max:50'],
+            'type' => [
+                'sometimes',
+                Rule::in([
+                    Vehicle::TYPE_CAR,
+                    Vehicle::TYPE_MOTORCYCLE,
+                ])
+            ],
+            'start_date' => ['required', 'date', 'after_or_equal:today'],
+            'end_date' => ['required', 'date', 'after_or_equal:start_date'],
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
+            'page' => ['sometimes', 'integer', 'min:1'],
+        ]);
+
+        $latitude = $validated['latitude'];
+        $longitude = $validated['longitude'];
+        $radius = $validated['radius'] ?? 10;
+
+        $distance = "
+            (6371 * ACOS(
+                MAX(-1, MIN(1,
+                    COS(RADIANS(?)) *
+                    COS(RADIANS(pickup_latitude)) *
+                    COS(RADIANS(pickup_longitude) - RADIANS(?)) +
+                    SIN(RADIANS(?)) *
+                    SIN(RADIANS(pickup_latitude))
+                ))
+            ))
+        ";
+
+        $vehicleQuery = Vehicle::query()
+            ->where('status', Vehicle::STATUS_APPROVED)
+            ->whereNotNull('pickup_latitude')
+            ->whereNotNull('pickup_longitude')
+            ->when(isset($validated['type']), function ($query) use ($validated) {
+                $query->where('type', $validated['type']);
+            })
+            ->whereDoesntHave('availabilities', function ($query) use ($validated) {
+                $query->where('start_date', '<=', $validated['end_date'])
+                    ->where('end_date', '>=', $validated['start_date']);
+            })
+            ->select('vehicles.*')
+            ->selectRaw("$distance AS distance_km", [
+                $latitude,
+                $longitude,
+                $latitude,
+            ]);
+
+        $vehicles = Vehicle::query()
+            ->fromSub($vehicleQuery, 'nearby_vehicles')
+            ->where('distance_km', '<=', $radius)
+            ->with('photos')
+            ->orderBy('distance_km')
+            ->paginate($validated['per_page'] ?? 10);
+
+        return response()->json($vehicles);
     }
 }
