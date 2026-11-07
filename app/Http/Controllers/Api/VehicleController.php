@@ -42,6 +42,7 @@ class VehicleController extends Controller
             'description' => ['nullable', 'string'],
             'pickup_latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'pickup_longitude' => ['nullable', 'numeric', 'between:-180,180'],
+            'daily_rate' => ['required', 'numeric', 'gt:0'],
         ]);
 
         $vehicle = $request->user()
@@ -101,6 +102,7 @@ class VehicleController extends Controller
             'description' => ['sometimes', 'nullable', 'string'],
             'pickup_latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'pickup_longitude' => ['nullable', 'numeric', 'between:-180,180'],
+            'daily_rate' => ['sometimes', 'required', 'numeric', 'gt:0'],
         ]);
 
         $vehicle->update($validated);

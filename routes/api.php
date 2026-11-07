@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\VehicleAvailabilityController;
 use App\Http\Controllers\Api\VehicleController;
@@ -29,6 +30,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/vehicles/nearby', [
             VehicleController::class,
             'nearby',
+        ]);
+
+        Route::get('/bookings', [BookingController::class, 'index']);
+        Route::post('/bookings', [BookingController::class, 'store']);
+        Route::get('/bookings/{booking}', [BookingController::class, 'show']);
+        Route::patch('/bookings/{booking}/cancel', [
+            BookingController::class,
+            'cancel',
         ]);
     });
 
@@ -75,6 +84,18 @@ Route::middleware('auth:sanctum')->group(function () {
             VehicleAvailabilityController::class,
             'destroy'
         ]);
+
+        Route::prefix('owner')->group(function () {
+            Route::get('/bookings', [BookingController::class, 'ownerIndex']);
+
+            Route::get('/bookings/{booking}', [BookingController::class, 'ownerShow']);
+
+            Route::patch('/bookings/{booking}/confirm', [BookingController::class, 'confirm']);
+
+            Route::patch('/bookings/{booking}/reject', [BookingController::class, 'reject']);
+
+            Route::patch('/bookings/{booking}/complete', [BookingController::class, 'complete']);
+        });
 
     });
 

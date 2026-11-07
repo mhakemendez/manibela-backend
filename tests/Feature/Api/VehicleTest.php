@@ -42,6 +42,7 @@ class VehicleTest extends TestCase
             'fuel_type' => 'gasoline',
             'seats' => 5,
             'description' => 'Well-maintained vehicle.',
+            'daily_rate' => 1500,
         ];
     }
 
