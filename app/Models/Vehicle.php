@@ -29,6 +29,7 @@ class Vehicle extends Model
         'description',
         'pickup_latitude',
         'pickup_longitude',
+        'daily_rate',
     ];
 
     public function owner(): BelongsTo
@@ -44,5 +45,10 @@ class Vehicle extends Model
     public function availabilities(): HasMany
     {
         return $this->hasMany(VehicleAvailability::class);
+    }
+
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(Booking::class);
     }
 }
